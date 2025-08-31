@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gemini Command Input</title>
+</head>
+
+<body>
+    <h1>Send Commands to Gemini</h1>
+    <textarea id="command-input" rows="10" cols="50" placeholder="Type commands here..."></textarea>
+    <script>
+        const textarea = document.getElementById('command-input');
+
+        textarea.addEventListener('keydown', (e) => {
+            let char = '';
+            if (e.key === 'Enter') {
+                char = '\r';  // Send carriage return (\r)
+                textarea.value += '\n';
+            } else if (e.key === 'Backspace') {
+                char = '\b';
+                textarea.value = textarea.value.slice(0, -1);
+            } else if (e.key === 'Tab') {
+                char = '\t';
+                textarea.value += '\t';
+            } else if (e.key === 'ArrowUp') {
+                char = '\x1b[A';
+            } else if (e.key === 'ArrowDown') {
+                char = '\x1b[B';
+            } else if (e.key === 'ArrowRight') {
+                char = '\x1b[C';
+            } else if (e.key === 'ArrowLeft') {
+                char = '\x1b[D';
+            } else if (e.key.length === 1) {
+                char = e.key;
+                textarea.value += e.key;
+            } else {
+                return; // ignore other keys
+            }
+
+            fetch('http://localhost:3000/command', {
+                method: 'POST',
+                body: char
+            }).catch(err => console.error('Error sending command:', err));
+
+            e.preventDefault();
+        });
+    </script>
+</body>
+
+</html>
