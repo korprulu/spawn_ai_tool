@@ -5,11 +5,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gemini Command Input</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/xterm/5.5.0/xterm.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xterm/5.5.0/xterm.js"></script>
 </head>
 
 <body>
     <h1>Send Commands to Gemini</h1>
     <textarea id="command-input" rows="10" cols="50" placeholder="Type commands here..."></textarea>
+    <h2>Output</h2>
+    <div id="terminal"></div>
     <script>
         const textarea = document.getElementById('command-input');
 
@@ -46,6 +50,21 @@
 
             e.preventDefault();
         });
+
+        // Receive output via SSE
+        const eventSource = new EventSource('http://localhost:3000/output');
+        var term = new Terminal();
+        term.open(document.getElementById('terminal'));
+
+        eventSource.onopen = () => {
+            console.log('SSE connected');
+        };
+        eventSource.onmessage = (event) => {
+            term.write(event.data);
+        };
+        eventSource.onerror = (err) => {
+            console.error('SSE error:', err);
+        };
     </script>
 </body>
 
