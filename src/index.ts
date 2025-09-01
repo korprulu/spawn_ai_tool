@@ -15,7 +15,7 @@ term.onData((data: string) => {
   process.stdout.write(data);
   // Send new data to all SSE clients
   sseClients.forEach(client => {
-    client.write(`data: ${data}\n\n`);
+    client.write(`data: ${Buffer.from(data).toString('base64')}\n\n`);
   });
 });
 

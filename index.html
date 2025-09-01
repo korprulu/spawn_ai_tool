@@ -60,7 +60,13 @@
             console.log('SSE connected');
         };
         eventSource.onmessage = (event) => {
-            term.write(event.data);
+            if (!event.data) return;
+            try {
+                const data = atob(event.data);
+                term.write(data);
+            } catch (e) {
+                console.error('Error decoding base64 data:', e);
+            }
         };
         eventSource.onerror = (err) => {
             console.error('SSE error:', err);
