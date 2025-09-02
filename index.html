@@ -15,9 +15,30 @@
     <h2>Output</h2>
     <div id="terminal"></div>
     <script>
-        const textarea = document.getElementById('command-input');
+        const ws = new WebSocket('ws://localhost:3000');
+        var term = new Terminal();
+        term.open(document.getElementById('terminal'));
 
+        ws.onopen = () => {
+            console.log('WebSocket connected');
+        };
+
+        ws.onmessage = (event) => {
+            term.write(event.data);
+        };
+
+        ws.onclose = () => {
+            console.log('WebSocket disconnected');
+        };
+
+        ws.onerror = (err) => {
+            console.error('WebSocket error:', err);
+        };
+
+        const textarea = document.getElementById('command-input');
         textarea.addEventListener('keydown', (e) => {
+            e.preventDefault();
+
             let char = '';
             if (e.key === 'Enter') {
                 char = '\r';  // Send carriage return (\r)
@@ -43,34 +64,10 @@
                 return; // ignore other keys
             }
 
-            fetch('http://localhost:3000/command', {
-                method: 'POST',
-                body: char
-            }).catch(err => console.error('Error sending command:', err));
-
-            e.preventDefault();
-        });
-
-        // Receive output via SSE
-        const eventSource = new EventSource('http://localhost:3000/output');
-        var term = new Terminal();
-        term.open(document.getElementById('terminal'));
-
-        eventSource.onopen = () => {
-            console.log('SSE connected');
-        };
-        eventSource.onmessage = (event) => {
-            if (!event.data) return;
-            try {
-                const data = atob(event.data);
-                term.write(data);
-            } catch (e) {
-                console.error('Error decoding base64 data:', e);
+            if (ws.readyState === WebSocket.OPEN) {
+                ws.send(char);
             }
-        };
-        eventSource.onerror = (err) => {
-            console.error('SSE error:', err);
-        };
+        });
     </script>
 </body>
 
